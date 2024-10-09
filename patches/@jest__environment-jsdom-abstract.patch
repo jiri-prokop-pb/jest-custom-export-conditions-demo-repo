@@ -1,0 +1,62 @@
+diff --git a/build/index.d.ts b/build/index.d.ts
+index e3bd38d4c4e446e7f990d2e05162723b78d856a2..d6b1827c85c832e90da7ff96c4d1943a6710ccc6 100644
+--- a/build/index.d.ts
++++ b/build/index.d.ts
+@@ -11,6 +11,7 @@ import {
+   EnvironmentContext,
+   JestEnvironment,
+   JestEnvironmentConfig,
++  JestExportConditionsPerModules,
+ } from '@jest/environment';
+ import {LegacyFakeTimers, ModernFakeTimers} from '@jest/fake-timers';
+ import {Global as Global_2} from '@jest/types';
+@@ -32,7 +33,7 @@ declare abstract class BaseJSDOMEnvironment implements JestEnvironment<number> {
+   );
+   setup(): Promise<void>;
+   teardown(): Promise<void>;
+-  exportConditions(): Array<string>;
++  exportConditions(): Array<string | JestExportConditionsPerModules>;
+   getVmContext(): Context | null;
+ }
+ export default BaseJSDOMEnvironment;
+diff --git a/build/index.js b/build/index.js
+index faea4c27639d23f32b1ef6b761184b0b4c3fbc77..f06b6ed272468e2da2dda12a8276221146d93f56 100644
+--- a/build/index.js
++++ b/build/index.js
+@@ -18,6 +18,13 @@ Object.defineProperty(exports, "__esModule", ({
+   value: true
+ }));
+ exports["default"] = void 0;
++function _environment() {
++  const data = require("@jest/environment");
++  _environment = function () {
++    return data;
++  };
++  return data;
++}
+ function _fakeTimers() {
+   const data = require("@jest/fake-timers");
+   _fakeTimers = function () {
+@@ -49,9 +56,6 @@ function _jestUtil() {
+ // The `Window` interface does not have an `Error.stackTraceLimit` property, but
+ // `JSDOMEnvironment` assumes it is there.
+ 
+-function isString(value) {
+-  return typeof value === 'string';
+-}
+ class BaseJSDOMEnvironment {
+   dom;
+   fakeTimers;
+@@ -132,10 +136,10 @@ class BaseJSDOMEnvironment {
+       const {
+         customExportConditions
+       } = projectConfig.testEnvironmentOptions;
+-      if (Array.isArray(customExportConditions) && customExportConditions.every(isString)) {
++      if (Array.isArray(customExportConditions) && customExportConditions.every(_environment().isExportConditions)) {
+         this._configuredExportConditions = customExportConditions;
+       } else {
+-        throw new Error('Custom export conditions specified but they are not an array of strings');
++        throw new Error('Custom export conditions specified but they are not an array of proper shape');
+       }
+     }
+     this.moduleMocker = new (_jestMock().ModuleMocker)(global);

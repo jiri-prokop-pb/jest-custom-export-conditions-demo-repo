@@ -1,0 +1,87 @@
+diff --git a/build/index.d.ts b/build/index.d.ts
+index 4209731cfd29affaaab0e15390dff192c41d7f4b..0eda87c58ac8fac46899761743dc7d45ed566463 100644
+--- a/build/index.d.ts
++++ b/build/index.d.ts
+@@ -16,6 +16,18 @@ export declare type EnvironmentContext = {
+   testPath: string;
+ };
+ 
++export declare function isExportConditions(
++  item: unknown,
++): item is string | JestExportConditionsPerModules;
++
++export declare function isExportConditionsItemPerModules(
++  item: string | JestExportConditionsPerModules,
++): item is JestExportConditionsPerModules;
++
++export declare function isSimpleExportConditionsItem(
++  item: string | JestExportConditionsPerModules,
++): item is string;
++
+ export declare interface Jest {
+   /**
+    * Advances all timers by `msToRun` milliseconds. All pending "macro-tasks"
+@@ -396,7 +408,7 @@ export declare class JestEnvironment<Timer = unknown> {
+   setup(): Promise<void>;
+   teardown(): Promise<void>;
+   handleTestEvent?: Circus.EventHandler;
+-  exportConditions?: () => Array<string>;
++  exportConditions?: () => Array<string | JestExportConditionsPerModules>;
+ }
+ 
+ export declare interface JestEnvironmentConfig {
+@@ -404,6 +416,11 @@ export declare interface JestEnvironmentConfig {
+   globalConfig: Config.GlobalConfig;
+ }
+ 
++export declare type JestExportConditionsPerModules = {
++  modules: Array<string>;
++  conditions: Array<string>;
++};
++
+ export declare interface JestImportMeta extends ImportMeta {
+   jest: Jest;
+ }
+diff --git a/build/index.js b/build/index.js
+index 4eaedbab180c91fd6e83d7f39d16693d38301200..681f33c368f2c796e40eb7ea5728ed515c6fc747 100644
+--- a/build/index.js
++++ b/build/index.js
+@@ -9,6 +9,38 @@
+ /******/ (() => { // webpackBootstrap
+ /******/ 	"use strict";
+ var __webpack_exports__ = {};
++// This entry need to be wrapped in an IIFE because it uses a non-standard name for the exports (exports).
++(() => {
++var exports = __webpack_exports__;
++
++
++Object.defineProperty(exports, "__esModule", ({
++  value: true
++}));
++exports.isExportConditions = isExportConditions;
++exports.isExportConditionsItemPerModules = isExportConditionsItemPerModules;
++exports.isSimpleExportConditionsItem = isSimpleExportConditionsItem;
++/**
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++
++// Different Order than https://nodejs.org/api/modules.html#modules_the_module_wrapper , however needs to be in the form [jest-transform]ScriptTransformer accepts
++
++function isSimpleExportConditionsItem(item) {
++  return typeof item === 'string';
++}
++function isExportConditionsItemPerModules(item) {
++  return typeof item !== 'string';
++}
++function isExportConditions(item) {
++  return typeof item === 'string' || typeof item === 'object' && item !== null && 'modules' in item && 'conditions' in item && Array.isArray(item.modules) && Array.isArray(item.conditions);
++}
++
++// TODO: Move to some separate package
++})();
+ 
+ module.exports = __webpack_exports__;
+ /******/ })()

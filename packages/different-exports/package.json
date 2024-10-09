@@ -1,0 +1,11 @@
+{
+  "name": "different-exports",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Package with Node.js- and browser-related exports",
+  "type": "module",
+  "exports": {
+    "node": "./index.node.ts",
+    "browser": "./index.browser.ts"
+  }
+}
